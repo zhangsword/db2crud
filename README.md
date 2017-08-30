@@ -1,2 +1,20 @@
-# db2crud
-This is a common js tools of node.js for db2 
+DB2CRUD
+=========
+
+tools of node.js for crud on db2
+
+## Installation
+
+  `npm install sword_zhang/db2crud`
+
+## Usage
+
+You can refer test.js for usage!
+
+
+## Tests
+
+  node test
+
+## Contributing
+
