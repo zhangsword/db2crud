@@ -1,0 +1,8 @@
+{ "DRIVER" : "{DB2 ODBC Driver}",
+  "DATABASE" : "TEST",
+  "UID" : "admin",
+  "PWD" : "dont4get!",
+  "HOSTNAME" : "dpev037.innovate.ibm.com",
+  "PORT" : 50000,
+  "PROTOCOL" : "TCPIP" 
+}

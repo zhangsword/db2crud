@@ -1,0 +1,16 @@
+{
+  "name": "db2crud",
+  "version": "0.0.1",
+  "private": false,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "ibm_db": "2.0.0",
+    "q": "1.5.0"
+  },
+  "repository": {},
+  "engines": {
+    "node": "4.x"
+  }
+}
