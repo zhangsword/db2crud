@@ -1,7 +1,6 @@
 //obj that saved table&field meta-data 
 var tbDefine = require('./tableDefine').tableSet;
-var ibmdb = require("ibm_db")
-, cn = 'DATABASE=TEST;HOSTNAME=dpev037.innovate.ibm.com;PORT=50000;PROTOCOL=TCPIP;UID=admin;PWD=dont4get!;';
+var ibmdb = require("ibm_db");
 var dbname = "TEST";
 var Q = require('q');
 var fs = require('fs');
