@@ -9,7 +9,7 @@ tools of node.js for crud on db2
 
 ## Usage
 
-var ibmdb = require("ibm_db");
+`var ibmdb = require("ibm_db");
 var dbutils = require('./tableOperate');
 var Q = require('q');
 
@@ -22,9 +22,9 @@ ibmdb.open(common.connectionString, function(err,conn){
 	dbutils.init().then(function(){
 		//select * from db2crudtest where ID=2 and STR='str3';
 		var tbObj = {ID:2,STR:"str3"};
-	  dbutils.get("db2crudtest",tbObj).then(function(rdata){
-	    console.log("retdata=" + JSON.stringify(rdata));
-	  })
+	  	dbutils.get("db2crudtest",tbObj).then(function(rdata){
+	    		console.log("retdata=" + JSON.stringify(rdata));
+	  	})
 	  
 	  //delete from db2crudtest where ID=2 and STR='str3';
 		var tbObj = {ID:2,STR:"str3"};
@@ -44,7 +44,7 @@ ibmdb.open(common.connectionString, function(err,conn){
  	    console.log("retdata=" + JSON.stringify(rdata));
 	  }) 
 	});
-});
+});`
 
 
 You can refer test.js for usage!
