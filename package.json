@@ -1,6 +1,6 @@
 {
   "name": "db2crud",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "private": false,
   "scripts": {
     "start": "node app.js"
