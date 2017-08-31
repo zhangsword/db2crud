@@ -4,6 +4,7 @@ var ibmdb = require("ibm_db");
 var dbname = "TEST";
 var Q = require('q');
 var fs = require('fs');
+var db2;
 
 /**
  * get definition of table by tablename
@@ -252,7 +253,9 @@ var removeById = function (name, id) {
 /**
  * get tablelist of current schema and fields definition of these tables
  */
-var init = function(){
+
+var init = function(db){
+  db2 = db;
   var deferred = Q.defer();
   db2.describe({
     database : dbname
@@ -317,12 +320,12 @@ var setPK = function(){
 };
 
 module.exports = {
-  get: get,
-  getById: getById,
-  insert: insert,
-  remove: remove,
-  removeById: removeById,
-  update: update,
-  getTbDefine: getTbDefine,
-  init: init
+    get: get,
+    getById: getById,
+    insert: insert,
+    remove: remove,
+    removeById: removeById,
+    update: update,
+    getTbDefine: getTbDefine,
+    init: init
 };

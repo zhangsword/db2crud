@@ -1,6 +1,7 @@
 var common = require("./common");
 var ibmdb = require("ibm_db");
-var dbutils = require('./tableOperate');
+var dbutils = require('./db2crud');
+var db2;
 var Q = require('q');
 
 ibmdb.open(common.connectionString, function(err,conn){ 
@@ -12,7 +13,7 @@ ibmdb.open(common.connectionString, function(err,conn){
 	
 	dropTable();	
 	createTable();
-	test();
+	test(db2);
 });
 
 function createTable() {
@@ -37,8 +38,8 @@ function dropTable() {
     }
 }
 
-function test(){
-  dbutils.init().then(function(){
+function test(db){
+  dbutils.init(db).then(function(){
     insertData().then(function(){
       getData().then(function(){
         updateData().then(function(){

@@ -9,13 +9,18 @@ tools of node.js for crud on db2
 
 ## Usage
   
+  Firstly, you need init db2 connection before usage.
+  
+  var db2crud = require('./db2crud');
+  db2crud.init(db);
+  
     // select * from db2crudtest where ID=2 and STR='str3';
     
     var tbObj = {
       ID : 2,
       STR : "str3"
     };
-    dbutils.get("db2crudtest", tbObj).then(function(rdata) {
+    db2crud.get("db2crudtest", tbObj).then(function(rdata) {
       console.log("retdata=" + JSON.stringify(rdata));
     })
 
@@ -24,7 +29,7 @@ tools of node.js for crud on db2
       ID : 2,
       STR : "str3"
     };
-    dbutils.remove("db2crudtest", tbObj).then(function(rdata) {
+    db2crud.remove("db2crudtest", tbObj).then(function(rdata) {
       console.log("retdata=" + JSON.stringify(rdata));
     })
 
@@ -33,7 +38,7 @@ tools of node.js for crud on db2
       ID : 2,
       STR : "str3"
     };
-    dbutils.get("db2crudtest", tbObj).then(function(rdata) {
+    db2crud.get("db2crudtest", tbObj).then(function(rdata) {
       console.log("retdata=" + JSON.stringify(rdata));
     })
 
@@ -42,7 +47,7 @@ tools of node.js for crud on db2
       ID : 2,
       STR : "str2"
     };
-    dbutils.insert("db2crudtest", tbObj).then(function(rdata) {
+    db2crud.insert("db2crudtest", tbObj).then(function(rdata) {
       console.log("retdata=" + JSON.stringify(rdata));
     })
 
