@@ -11,8 +11,8 @@ tools of node.js for crud on db2
   
   Firstly, you need init db2 connection before usage.
   
-  var db2crud = require('./db2crud');
-  db2crud.init(db);
+    var db2crud = require('db2crud');
+    db2crud.init(db);
   
     // select * from db2crudtest where ID=2 and STR='str3';
     
