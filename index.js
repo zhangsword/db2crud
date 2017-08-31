@@ -1,6 +1,5 @@
 //obj that saved table&field meta-data 
 var tbDefine = [];
-var ibmdb = require("ibm_db");
 var dbname = "TEST";
 var Q = require('q');
 var fs = require('fs');
