@@ -10,7 +10,7 @@
   },
   "devDependencies":{
   	"ibm_db": "2.0.0"
-  }
+  },
   "repository": {},
   "engines": {
     "node": "4.x"
