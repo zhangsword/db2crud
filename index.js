@@ -301,8 +301,8 @@ var getTbInfo = function(name){
  */
 var setPK = function(){
   var deferred = Q.defer();
-  fs.readFile('./getPK.sql', 'utf8', function(err, contents) {
-    exeQuery(contents).then(function(data){
+  var sql =  "SELECT tabschema, tabname, colname FROM syscat.columns WHERE keyseq IS NOT NULL AND keyseq > 0  ORDER BY tabschema, tabname, keyseq"; 
+  exeQuery(sql).then(function(data){
       for (var i = 0; i < data.length; i++) {
         for (var j = 0; j < tbDefine.length; j++) {
           if (data[i].TABNAME == tbDefine[j].TABLE_NAME){
@@ -314,7 +314,6 @@ var setPK = function(){
         }
       }
     });
-  });
   return deferred.promise;
 };
 
