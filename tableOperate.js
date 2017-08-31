@@ -1,5 +1,5 @@
 //obj that saved table&field meta-data 
-var tbDefine = require('./tableDefine').tableSet;
+var tbDefine = [];
 var ibmdb = require("ibm_db");
 var dbname = "TEST";
 var Q = require('q');
@@ -17,6 +17,7 @@ var getTbDefine = function(name){
   }
   return null;
 }
+
 /**
  * get field definition of table by tablename&fldname
  */
@@ -47,14 +48,20 @@ function exeQuery(sql) {
   });
   return deferred.promise;
 }
+
 /**
- * execute sql and return result
+ * get value of sequence 
+ * sequence name rule is : tablename + "_seq"
  */
 var getSeq = function(name){
   var deferred = Q.defer();
   exeQuery('select NEXT VALUE FOR ' + name + '_seq value from sysibm.sysdummy1').then(data => deferred.resolve(data[0].VALUE));
   return deferred.promise;
 }
+
+/**
+ * mapping fieldname with JSON field and insert into table named "name" parameter 
+ */
 var insert = function(name,dataObj){
   var deferred = Q.defer();
   getSeq(name).then(function(seq){
@@ -79,14 +86,14 @@ var insert = function(name,dataObj){
     fldstr = fldstr.substring(0,fldstr.length-1);
     valstr = valstr.substring(0,valstr.length-1);
     sql = sql.replace("[fldstr]",fldstr).replace("[valstr]",valstr);
-    //console.log("sql=" + sql);
-    //console.log("valarr=" + valarr);
+    // console.log("sql=" + sql);
+    // console.log("valarr=" + valarr);
     db2.prepare(sql,function (err, stmt) {
       if (err) {
         console.log(err);
         return;
       }
-      //Bind and Execute the statment asynchronously
+      // Bind and Execute the statment asynchronously
       stmt.execute(valarr, function (err, ret) {
         if( err ) {
           console.log(err);  
@@ -101,6 +108,9 @@ var insert = function(name,dataObj){
   return deferred.promise;
 }
 
+/**
+ * get records that field equal with corresponding JSON field
+ */
 var get = function(name,dataObj){
   var deferred = Q.defer();
   var tb = getTbDefine(name);
@@ -123,7 +133,7 @@ var get = function(name,dataObj){
       console.log(err);
       return;
     }
-    //Bind and Execute the statment asynchronously
+    // Bind and Execute the statment asynchronously
     stmt.execute(valarr, function (err, ret) {
       if( err ) {
         console.log(err);  
@@ -139,6 +149,9 @@ var get = function(name,dataObj){
   return deferred.promise;
 }
 
+/**
+ * get record by PK
+ */
 var getById = function (name, id) {
   var tb = getTbDefine(name);
   var dataObj = {};
@@ -146,6 +159,9 @@ var getById = function (name, id) {
   return get(name, dataObj);
 };
 
+/**
+ * update records that field equal with corresponding JSON field
+ */
 var update = function(name,dataObj){
   var deferred = Q.defer();
   var tb = getTbDefine(name);
@@ -168,7 +184,7 @@ var update = function(name,dataObj){
       console.log(err);
       return;
     }
-    //Bind and Execute the statment asynchronously
+    // Bind and Execute the statment asynchronously
     stmt.executeNonQuery(valarr, function (err, ret) {
       if( err ) {
         console.log(err);  
@@ -183,7 +199,9 @@ var update = function(name,dataObj){
   return deferred.promise;
 }
 
-
+/**
+ * delete records that field equal with corresponding JSON field
+ */
 var remove = function(name,dataObj){
   var deferred = Q.defer();
   var tb = getTbDefine(name);
@@ -206,7 +224,7 @@ var remove = function(name,dataObj){
       console.log(err);
       deferred.resolve(err);
     }
-    //Bind and Execute the statment asynchronously
+    // Bind and Execute the statment asynchronously
     stmt.executeNonQuery(valarr, function (err, ret) {
       if( err ) {
         console.log(err);  
@@ -221,6 +239,9 @@ var remove = function(name,dataObj){
   return deferred.promise;
 }
 
+/**
+ * delete record by PK
+ */
 var removeById = function (name, id) {
   var tb = getTbDefine(name);
   var dataObj = {};
@@ -228,7 +249,9 @@ var removeById = function (name, id) {
   return remove(name, dataObj);
 };
 
-
+/**
+ * get tablelist of current schema and fields definition of these tables
+ */
 var init = function(){
   var deferred = Q.defer();
   db2.describe({
@@ -246,7 +269,7 @@ var init = function(){
         if (i==result.length-1){
           console.log("got table&field metadata!");
           setPK().then(function(){
-            //console.log(JSON.stringify(tbDefine));
+            // console.log(JSON.stringify(tbDefine));
             console.log("set PK of table!");
             deferred.resolve(null);
           })
@@ -256,6 +279,10 @@ var init = function(){
   });
   return deferred.promise;
 }
+
+/**
+ * get tablelist of current schema
+ */
 var getTbInfo = function(name){
   var deferred = Q.defer();
   db2.describe({
@@ -267,6 +294,9 @@ var getTbInfo = function(name){
   return deferred.promise;
 }
 
+/**
+ * set pk field for each item of table list
+ */
 var setPK = function(){
   var deferred = Q.defer();
   fs.readFile('./getPK.sql', 'utf8', function(err, contents) {
