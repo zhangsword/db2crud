@@ -1,6 +1,6 @@
 var common = require("./common");
 var ibmdb = require("ibm_db");
-var dbutils = require('./db2crud');
+var dbutils = require('./index');
 var db2;
 var Q = require('q');
 
