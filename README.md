@@ -15,7 +15,6 @@ tools of node.js for crud on db2
     db2crud.init(db);
   
     // select * from db2crudtest where ID=2 and STR='str3';
-    
     var tbObj = {
       ID : 2,
       STR : "str3"
@@ -38,7 +37,7 @@ tools of node.js for crud on db2
       ID : 2,
       STR : "str3"
     };
-    db2crud.get("db2crudtest", tbObj).then(function(rdata) {
+    db2crud.update("db2crudtest", tbObj).then(function(rdata) {
       console.log("retdata=" + JSON.stringify(rdata));
     })
 
