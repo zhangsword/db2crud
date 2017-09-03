@@ -56,6 +56,21 @@ tools of node.js for crud on db2
     dbutils.insert("db2crudtest",tbObj).then(function(rdata){
       console.log("retdata=" + JSON.stringify(rdata));
     });
+    
+Error Check
+
+		//retdata=[["NUM[1] is not integer"],
+                ["STR[3] is not varchar"],
+                ["format of DATEFIELD[abc] is invalid "],
+                ["length of STR[123456] must be less than 5"]]
+    tbObj = [{NUM:"2",STR:"2",DATEFIELD:"2017-09-03 05:25:00"}
+           ,{NUM:3,STR:3,DATEFIELD:"2017-09-03 05:25:00"}
+           ,{NUM:3,STR:3,DATEFIELD:"abc"}
+           ,{NUM:3,STR:"123456",DATEFIELD:"2017-09-03 05:25:00"}];
+    dbutils.insert("db2crudtest",tbObj).then(function(rdata){
+          console.log("retdata=" + JSON.stringify(rdata));
+    });
+    
 
 You can refer test.js for further detail!
 

@@ -3,8 +3,98 @@ var tbDefine = [];
 var dbname = "TEST";
 var Q = require('q');
 var fs = require('fs');
+var moment = require('moment');
 var db2;
 var log = require('log4node');
+var TIMESTAMP_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+
+/**
+ * get definition of table by tablename
+ */
+var setTimeFormat = function(tf){
+  TIMESTAMP_FORMAT = tf;
+}
+var intType = 4;
+var varcharType = 12;
+var timestampType = 93;
+var checkArrValid = function(name,tbObjArr) {
+  var deferred = Q.defer();
+  var promises = [];
+  for (var i = 0; i < tbObjArr.length; i++) {
+    var item = tbObjArr[i];
+    promises.push(checkValid(name,item)); 
+  }
+  Q.all(promises).then(function(result){ 
+    var errFlag = false;
+    for (var i = 0; i < result.length; i++) {
+      if (result[i].length > 0){
+        errFlag = true;
+      }
+    }
+    if (errFlag) {
+      deferred.resolve(result);
+    } else {
+      deferred.resolve([]);
+    }
+  });
+  return deferred.promise;
+}
+var checkValid = function(name,tbObj){
+  var deferred = Q.defer();
+  log.debug("check field start************************************");
+  var resultArr = [];
+  var tb = getTbDefine(name);
+  for (var i = 0; i < tb.FIELD_DEFINITION.length; i++) {
+    var item = tb.FIELD_DEFINITION[i];
+    var data = tbObj[item.COLUMN_NAME];
+    log.debug("Checking field:" + item.COLUMN_NAME + " value=" + data + "________");
+    if ((typeof data == 'string') || (data instanceof String)){
+      log.debug("data='" + data + "'");      
+    }else{
+      log.debug("data=" + data);
+    }
+    if (!item.NULLABLE && item.COLUMN_NAME!=tb.PK_FIELD && (data==null || data==undefined)){
+      resultArr.push(item.COLUMN_NAME + " must be not null");
+    } else {
+      if (item.COLUMN_NAME!=tb.PK_FIELD){
+        if (item.NULLABLE && (data==null || data==undefined)){
+          continue;
+        } else {
+          switch(item.DATA_TYPE) {
+          case 4:
+            log.debug("data != parseInt(data, 10):" + (data != parseInt(data, 10)));
+            if(data != parseInt(data, 10) || (typeof data == 'string') || (data instanceof String)){
+              log.debug("data is invalid");
+              resultArr.push(item.COLUMN_NAME + "[" + data + "]" + " is not integer");
+            };
+            break;
+          case 12:
+            log.debug("typeof data != 'string' && !data instanceof String:" + (typeof data != 'string' && !data instanceof String));
+            if ((typeof data != 'string') && !(data instanceof String)){
+              log.debug("data type invalid");
+              resultArr.push(item.COLUMN_NAME + "[" + data + "]" + " is not varchar");
+            } else {
+              if (data.length > item.COLUMN_SIZE) {
+                log.debug("data length invalid");
+                resultArr.push("length of" + item.COLUMN_NAME + "[" + data + "] must be less than " + item.COLUMN_SIZE);
+              }
+            }
+            break;
+          case 93:
+            log.debug("!moment(data, TIMESTAMP_FORMAT):" + (!moment(data, TIMESTAMP_FORMAT).isValid()));
+            if (!moment(data, TIMESTAMP_FORMAT).isValid()){
+              log.debug("date format invalid");
+              resultArr.push("format of " + item.COLUMN_NAME + "[" + data + "]" + " is invalid ");
+            };
+            break;
+          }
+        }
+      }
+    }
+  }
+  deferred.resolve(resultArr);
+  return deferred.promise;
+}
 
 /**
  * get definition of table by tablename
@@ -62,17 +152,30 @@ var getSeq = function(name){
 
 var insert = function(name,dataObj){
   var deferred = Q.defer();
+  var rArr = [];
   if (dataObj.constructor == Array){
-    var promises = [];
-    for (var i = 0; i < dataObj.length; i++) {
-      var item = dataObj[i];
-      promises.push(_insert(name,dataObj));
-    }
-    Q.all(promises).then(function(result){ 
-      deferred.resolve(result);
-    });
+    checkArrValid(name,dataObj).then(function(result){
+      if (result.length > 0) {
+        deferred.reject(result);
+      } else {
+        var promises = [];
+        for (var i = 0; i < dataObj.length; i++) {
+          var item = dataObj[i];
+          promises.push(_insert(name,item));
+        }
+        Q.all(promises).then(function(result){ 
+          deferred.resolve(result);
+        });        
+      }
+    })
   } else {
-    deferred.resolve(_insert(name,dataObj));
+    checkValid(name,dataObj).then(function(result){
+      if (result.length > 0) {
+        deferred.reject(result);
+      } else {
+        deferred.resolve(_insert(name,dataObj));
+      }
+    })
   }
   return deferred.promise;
 }
@@ -182,6 +285,11 @@ var getById = function (name, id) {
  */
 var update = function(name,dataObj){
   var deferred = Q.defer();
+  var resultArr = checkValid(name,dataObj);
+  if (resultArr.length > 0) {
+    log.debug("data are invalid!__________________");
+    deferred.reject(resultArr);
+  }  
   var tb = getTbDefine(name);
   var sql = "update " + tb.TABLE_NAME + " set [fldstr]" + " where [pkstr]";
   var fldstr = "",valarr = [],pkstr="";
@@ -272,7 +380,7 @@ var removeById = function (name, id) {
  */
 
 var init = function(db){
-  log.setLogLevel('info');
+  log.setLogLevel('debug');
   db2 = db;
   var deferred = Q.defer();
   db2.describe({
@@ -347,5 +455,6 @@ module.exports = {
     removeById: removeById,
     update: update,
     getTbDefine: getTbDefine,
-    init: init
+    init: init,
+    setTimeFormat:setTimeFormat
 };

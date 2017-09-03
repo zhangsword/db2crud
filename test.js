@@ -10,15 +10,16 @@ ibmdb.open(common.connectionString, function(err,conn){
 		console.log(err);
 		process.exit(1);
 	}
-	
 	dropTable();	
+	console.log("drop table done!");
 	createTable();
+	console.log("create table done!");
 	test(db2);
 });
 
 function createTable() {
   db2.querySync("create sequence db2crudtest_seq");
-	db2.query('create table db2crudtest (id integer not null,str varchar(50), constraint "P_Identifier_db2crud" primary key (id))', function (err) {
+	db2.query('create table db2crudtest (id integer not null,num integer,str varchar(5),datefield timestamp, constraint "P_Identifier_db2crud" primary key (id))', function (err) {
 		if (err) {
 			console.log(err);
 			return finish();
@@ -54,18 +55,28 @@ function test(db){
 
 function insertData() {
   var deferred = Q.defer();
-  var tbObj = {STR:"str1"};
+  var tbObj = {NUM:1,STR:"12345",DATEFIELD:"2017-09-03 05:25:00"};
   dbutils.insert("db2crudtest",tbObj).then(function(rdata){
     console.log("retdata=" + JSON.stringify(rdata));
     tbObj = {ID:2,STR:"str2"};
     dbutils.insert("db2crudtest",tbObj).then(function(rdata){
-      tbObj = [{ID:3,STR:"str3"},{ID:4,STR:"str4"}];
+      tbObj = [{ID:3,STR:"str3",DATEFIELD:"2017-09-03 05:25:00.518"},{ID:4,STR:"str4"}];
       dbutils.insert("db2crudtest",tbObj).then(function(rdata){
         console.log("retdata=" + JSON.stringify(rdata));
-        deferred.resolve(null);
+        tbObj = [{NUM:"2",STR:"2",DATEFIELD:"2017-09-03 05:25:00"}
+        ,{NUM:3,STR:3,DATEFIELD:"2017-09-03 05:25:00"}
+        ,{NUM:3,STR:3,DATEFIELD:"abc"}
+        ,{NUM:3,STR:"123456",DATEFIELD:"2017-09-03 05:25:00"}];
+        dbutils.insert("db2crudtest",tbObj).then(function(rdata){
+        },function(error){
+          console.log("error=" + JSON.stringify(error));
+          deferred.resolve(null);          
+        });
       });
     });
-  });
+  },function(error){
+    console.log("error=" + JSON.stringify(error));
+  })
   return deferred.promise;
 }
 function getData() {
