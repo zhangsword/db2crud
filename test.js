@@ -59,8 +59,11 @@ function insertData() {
     console.log("retdata=" + JSON.stringify(rdata));
     tbObj = {ID:2,STR:"str2"};
     dbutils.insert("db2crudtest",tbObj).then(function(rdata){
-      console.log("retdata=" + JSON.stringify(rdata));
-      deferred.resolve(null);
+      tbObj = [{ID:3,STR:"str3"},{ID:4,STR:"str4"}];
+      dbutils.insert("db2crudtest",tbObj).then(function(rdata){
+        console.log("retdata=" + JSON.stringify(rdata));
+        deferred.resolve(null);
+      });
     });
   });
   return deferred.promise;

@@ -49,6 +49,13 @@ tools of node.js for crud on db2
     db2crud.insert("db2crudtest", tbObj).then(function(rdata) {
       console.log("retdata=" + JSON.stringify(rdata));
     })
+    
+    // insert db2crudtest(ID,STR) VALUES (3,"str3")
+    // insert db2crudtest(ID,STR) VALUES (4,"str4")
+    tbObj = [{ID:3,STR:"str3"},{ID:4,STR:"str4"}];
+    dbutils.insert("db2crudtest",tbObj).then(function(rdata){
+      console.log("retdata=" + JSON.stringify(rdata));
+    });
 
 You can refer test.js for further detail!
 

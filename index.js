@@ -4,6 +4,7 @@ var dbname = "TEST";
 var Q = require('q');
 var fs = require('fs');
 var db2;
+var log = require('log4node');
 
 /**
  * get definition of table by tablename
@@ -36,13 +37,13 @@ var getFldDefine = function(tbname,fldname){
  */
 function exeQuery(sql) {
   var deferred = Q.defer();
-  console.log("sql=" + sql);
+  log.debug("sql=" + sql);
   db2.query(sql, function (error, data) {
     if (error) {
-      console.log("db error:" + JSON.stringify(error));
+      log.error("db error:" + JSON.stringify(error));
       deferred.reject(error);
     } else {
-      console.log("db data=" + JSON.stringify(data));
+      log.debug("db data=" + JSON.stringify(data));
       deferred.resolve(data);
     }
   });
@@ -59,10 +60,27 @@ var getSeq = function(name){
   return deferred.promise;
 }
 
+var insert = function(name,dataObj){
+  var deferred = Q.defer();
+  if (dataObj.constructor == Array){
+    var promises = [];
+    for (var i = 0; i < dataObj.length; i++) {
+      var item = dataObj[i];
+      promises.push(_insert(name,dataObj));
+    }
+    Q.all(promises).then(function(result){ 
+      deferred.resolve(result);
+    });
+  } else {
+    deferred.resolve(_insert(name,dataObj));
+  }
+  return deferred.promise;
+}
+
 /**
  * mapping fieldname with JSON field and insert into table named "name" parameter 
  */
-var insert = function(name,dataObj){
+var _insert = function(name,dataObj){
   var deferred = Q.defer();
   getSeq(name).then(function(seq){
     var tb = getTbDefine(name);
@@ -86,8 +104,8 @@ var insert = function(name,dataObj){
     fldstr = fldstr.substring(0,fldstr.length-1);
     valstr = valstr.substring(0,valstr.length-1);
     sql = sql.replace("[fldstr]",fldstr).replace("[valstr]",valstr);
-    // console.log("sql=" + sql);
-    // console.log("valarr=" + valarr);
+    log.debug("sql=" + sql);
+    log.debug("valarr=" + valarr);
     db2.prepare(sql,function (err, stmt) {
       if (err) {
         console.log(err);
@@ -96,8 +114,8 @@ var insert = function(name,dataObj){
       // Bind and Execute the statment asynchronously
       stmt.execute(valarr, function (err, ret) {
         if( err ) {
-          console.log(err);  
-          deferred.resolve(err);
+          log.error(err);  
+          deferred.reject(err);
         }
         else {
           deferred.resolve(dataObj);
@@ -126,8 +144,8 @@ var get = function(name,dataObj){
   }
   fldstr = fldstr.substring(0,fldstr.length-5);
   sql = sql.replace("[fldstr]",fldstr);
-  console.log("sql=" + sql);
-  console.log("valarr=" + valarr);
+  log.debug("sql=" + sql);
+  log.debug("valarr=" + valarr);
   db2.prepare(sql,function (err, stmt) {
     if (err) {
       console.log(err);
@@ -136,13 +154,13 @@ var get = function(name,dataObj){
     // Bind and Execute the statment asynchronously
     stmt.execute(valarr, function (err, ret) {
       if( err ) {
-        console.log(err);  
-        deferred.resolve(err)
+        log.error(err);  
+        deferred.reject(err)
       }
       else {
         var data = ret.fetchAllSync();
+        log.debug("data = " + JSON.stringify(data));
         deferred.resolve(data);
-        console.log("data = " + JSON.stringify(data));
       }
     });
   });
@@ -177,8 +195,8 @@ var update = function(name,dataObj){
   }
   fldstr = fldstr.substring(0,fldstr.length-3);
   sql = sql.replace("[fldstr]",fldstr).replace("[pkstr]",tb.PK_FIELD + "=" + dataObj[tb.PK_FIELD]);
-  console.log("sql=" + sql);
-  console.log("valarr=" + valarr);
+  log.debug("sql=" + sql);
+  log.debug("valarr=" + valarr);
   db2.prepare(sql,function (err, stmt) {
     if (err) {
       console.log(err);
@@ -187,11 +205,11 @@ var update = function(name,dataObj){
     // Bind and Execute the statment asynchronously
     stmt.executeNonQuery(valarr, function (err, ret) {
       if( err ) {
-        console.log(err);  
-        deferred.resolve(err);
+        log.error(err);  
+        deferred.reject(err);
       }
       else {
-        console.log("Affected rows = " + ret);
+        log.debug("Affected rows = " + ret);
         deferred.resolve(ret);
       }
     });
@@ -217,21 +235,21 @@ var remove = function(name,dataObj){
   }
   fldstr = fldstr.substring(0,fldstr.length-5);
   sql = sql.replace("[fldstr]",fldstr);
-  console.log("sql=" + sql);
-  console.log("valarr=" + valarr);
+  log.debug("sql=" + sql);
+  log.debug("valarr=" + valarr);
   db2.prepare(sql,function (err, stmt) {
     if (err) {
-      console.log(err);
+      log.error(err);
       deferred.resolve(err);
     }
     // Bind and Execute the statment asynchronously
     stmt.executeNonQuery(valarr, function (err, ret) {
       if( err ) {
-        console.log(err);  
-        deferred.resolve(err)
+        log.error(err);  
+        deferred.reject(err)
       }
       else {
-        console.log("Affected rows = " + ret);
+        log.debug("Affected rows = " + ret);
         deferred.resolve(ret);
       }
     });
@@ -254,6 +272,7 @@ var removeById = function (name, id) {
  */
 
 var init = function(db){
+  log.setLogLevel('info');
   db2 = db;
   var deferred = Q.defer();
   db2.describe({
@@ -269,10 +288,10 @@ var init = function(db){
       for (var i = 0; i < result.length; i++) {
         tbDefine[i].FIELD_DEFINITION = result[i];
         if (i==result.length-1){
-          console.log("got table&field metadata!");
+          log.info("got table&field metadata!");
           setPK().then(function(){
             // console.log(JSON.stringify(tbDefine));
-            console.log("set PK of table!");
+            log.info("set PK of table!");
             deferred.resolve(null);
           })
         }
@@ -291,6 +310,9 @@ var getTbInfo = function(name){
     database : dbname,
     table : name
   }, function (err, data) {
+    if (err){
+      deferred.reject(err);
+    }
     deferred.resolve(data);
   });
   return deferred.promise;

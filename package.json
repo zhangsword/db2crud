@@ -9,7 +9,8 @@
     "q": "1.5.0"
   },
   "devDependencies":{
-  	"ibm_db": "2.0.0"
+  	"ibm_db": "2.0.0",
+  	"log4node":"0.1.6"
   },
   "repository": {},
   "engines": {
