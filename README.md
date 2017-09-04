@@ -59,10 +59,18 @@ tools of node.js for crud on db2
     
 Error Check
 
-		//retdata=[["NUM[1] is not integer"],
-                ["STR[3] is not varchar"],
-                ["format of DATEFIELD[abc] is invalid "],
-                ["length of STR[123456] must be less than 5"]]
+		//retdata=    [  
+      {  
+        "field":"DATEFIELD",
+        "value":"abc",
+        "errMsg":"format of DATEFIELD[abc] is invalid "
+      },
+      {  
+        "field":"STR",
+        "value":"123456",
+        "errMsg":"length ofSTR[123456] must be less than 5"
+      }
+    ]
     tbObj = [{NUM:"2",STR:"2",DATEFIELD:"2017-09-03 05:25:00"}
            ,{NUM:3,STR:3,DATEFIELD:"2017-09-03 05:25:00"}
            ,{NUM:3,STR:3,DATEFIELD:"abc"}
