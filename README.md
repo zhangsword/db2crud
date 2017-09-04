@@ -68,7 +68,7 @@ Error Check
       {  
         "field":"STR",
         "value":"123456",
-        "errMsg":"length ofSTR[123456] must be less than 5"
+        "errMsg":"length of STR[123456] must be less than 5"
       }
     ]
     tbObj = [{NUM:"2",STR:"2",DATEFIELD:"2017-09-03 05:25:00"}
