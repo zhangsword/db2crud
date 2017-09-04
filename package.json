@@ -1,6 +1,6 @@
 {
   "name": "db2crud",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "private": false,
   "scripts": {
     "start": "node app.js"
@@ -12,6 +12,9 @@
   },
   "devDependencies":{
   	"ibm_db": "2.0.0"
+  },
+  "scripts": {
+    "test": "mocha"
   },
   "repository": {},
   "engines": {

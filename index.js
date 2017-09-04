@@ -383,6 +383,7 @@ var insert = function(name,dataObj){
     })
   } else {
     checkValid(name,dataObj).then(function(result){
+      log.debug("check result=" + JSON.stringify(result));
       if (result.length > 0) {
         deferred.reject(result);
       } else {
@@ -454,6 +455,8 @@ var _insert = function(name,dataObj){
         }
       });
     });
+  },function(err){
+    deferred.reject(err);
   });
   return deferred.promise;
 }
@@ -672,6 +675,12 @@ var init = function(options){
     dbname = options.dbname;
   }
   var deferred = Q.defer();
+  if (localLoadFlag){
+    setTbInfo("./tbinfo.json").then(function(data){
+      deferred.resolve(null);      
+    })
+    return deferred.promise;
+  }
   db2.describe({
     database : dbname
   }, function (err, data) {
@@ -729,19 +738,37 @@ var setPK = function(){
   var deferred = Q.defer();
   var sql =  "SELECT tabschema, tabname, colname FROM syscat.columns WHERE keyseq IS NOT NULL AND keyseq > 0  ORDER BY tabschema, tabname, keyseq"; 
   exeQuery(sql).then(function(data){
-      for (var i = 0; i < data.length; i++) {
-        for (var j = 0; j < tbDefine.length; j++) {
-          if (data[i].TABNAME == tbDefine[j].TABLE_NAME){
-            tbDefine[j].PK_FIELD = data[i].COLNAME;
-          }
-        }
-        if (i==data.length-1) {
-          deferred.resolve(tbDefine);
+     for (var i = 0; i < data.length; i++) {
+      for (var j = 0; j < tbDefine.length; j++) {
+        if (data[i].TABNAME == tbDefine[j].TABLE_NAME){
+          tbDefine[j].PK_FIELD = data[i].COLNAME;
         }
       }
-    });
+      if (i==data.length-1) {
+        fs.writeFile("./tbinfo.json", JSON.stringify(tbDefine), function(err) {
+          if(err) {
+              return console.log(err);
+          }
+          console.log("The file was saved!");
+        });
+        deferred.resolve(tbDefine);
+      }
+    }
+  });
   return deferred.promise;
 };
+var localLoadFlag = true;
+function setTbInfo(filePath){
+  var deferred = Q.defer();
+  fs.readFile(filePath, 'utf8', function (err,data) {
+    if (err) {
+      deferred.reject(err);
+    }
+    tbDefine = JSON.parse(data);
+    deferred.resolve(data);
+  });
+  return deferred.promise;
+}
 
 module.exports = {
     get: get,
