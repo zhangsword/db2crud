@@ -128,7 +128,7 @@ var checkArrValid = function(name,tbObjArr) {
       {  
         "field":"STR",
         "value":"123456",
-        "errMsg":"length ofSTR[123456] must be less than 5"
+        "errMsg":"length of STR[123456] must be less than 5"
       }
     ]
  * @reference refer following url about date format 

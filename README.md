@@ -88,3 +88,11 @@ You can refer test.js for further detail!
 
 ## Contributing
 
+  Email:sword_zhang@163.com
+  
+  QQ:974566030
+
+##License
+  Copyright(c) 2017 Jian Zhang
+
+  MIT Licensed
