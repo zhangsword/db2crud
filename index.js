@@ -1,4 +1,10 @@
-//obj that saved table&field meta-data 
+/*!
+ * db2crud
+ * Copyright(c) 2017 Jian Zhang
+ * sword_zhang@163.com
+ * MIT Licensed
+ */
+
 var tbDefine = [];
 var dbname = "TEST";
 var Q = require('q');
@@ -9,14 +15,74 @@ var log = require('log4node');
 var TIMESTAMP_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
 /**
- * get definition of table by tablename
- */
+ * set database with param "name"
+ *
+ * @param String name:database name :sample 'TEST'
+ * @return 
+ **/
+var setDbname = function(name){
+  dbname = name;
+}
+
+/**
+ * set time format for timestamp field
+ *
+ * @param String tf :time format of db2:like 'YYYY-MM-DD HH:mm:ss'
+ * @return 
+ * @reference refer following url about date format 
+ * https://momentjs.com/docs/#/use-it/    
+ **/
 var setTimeFormat = function(tf){
   TIMESTAMP_FORMAT = tf;
 }
 var intType = 4;
 var varcharType = 12;
 var timestampType = 93;
+
+/**
+ * check field value on type,length,format
+ *
+ * @param String name :table name of db2 need operate on
+ * @param JSON tbObjArr :like following obj
+    [  
+      {  
+        NUM:"2",
+        STR:"2",
+        DATEFIELD:"2017-09-03 05:25:00"
+      },
+      {  
+        NUM:3,
+        STR:3,
+        DATEFIELD:"2017-09-03 05:25:00"
+      }
+    ]
+ * @return promise object included checkResult:
+ * 【success result sample】: []
+ * 【error result sample】
+    [  
+      [  
+        {  
+          "field":"STR",
+          "value":3,
+          "errMsg":"STR[3] is not varchar"
+        },
+        {  
+          "field":"DATEFIELD",
+          "value":"abc",
+          "errMsg":"format of DATEFIELD[abc] is invalid "
+        }
+      ],
+      [  
+        {  
+          "field":"STR",
+          "value":"123456",
+          "errMsg":"length ofSTR[123456] must be less than 5"
+        }
+      ]
+    ]
+ * @reference refer following url about date format 
+ * https://momentjs.com/docs/#/use-it/    
+ **/
 var checkArrValid = function(name,tbObjArr) {
   var deferred = Q.defer();
   var promises = [];
@@ -39,6 +105,36 @@ var checkArrValid = function(name,tbObjArr) {
   });
   return deferred.promise;
 }
+
+/**
+ * check field value on type,length,format
+ *
+ * @param String name :table name of db2 need operate on
+ * @param JSON tbObj :like following obj 
+    {  
+      NUM:"2",
+      STR:"2",
+      DATEFIELD:"2017-09-03 05:25:00"
+    }
+ * @return promise object included checkResult:
+ * 【success result sample】: []
+ * 【error result sample】  
+    [  
+      {  
+        "field":"DATEFIELD",
+        "value":"abc",
+        "errMsg":"format of DATEFIELD[abc] is invalid "
+      },
+      {  
+        "field":"STR",
+        "value":"123456",
+        "errMsg":"length ofSTR[123456] must be less than 5"
+      }
+    ]
+ * @reference refer following url about date format 
+ * https://momentjs.com/docs/#/use-it/   
+ *  
+ **/
 var checkValid = function(name,tbObj){
   var deferred = Q.defer();
   log.debug("check field start************************************");
@@ -65,18 +161,18 @@ var checkValid = function(name,tbObj){
             log.debug("data != parseInt(data, 10):" + (data != parseInt(data, 10)));
             if(data != parseInt(data, 10) || (typeof data == 'string') || (data instanceof String)){
               log.debug("data is invalid");
-              resultArr.push(item.COLUMN_NAME + "[" + data + "]" + " is not integer");
+              resultArr.push({field:item.COLUMN_NAME,value:data,errMsg:item.COLUMN_NAME + "[" + data + "]" + " is not integer"});
             };
             break;
           case 12:
             log.debug("typeof data != 'string' && !data instanceof String:" + (typeof data != 'string' && !data instanceof String));
             if ((typeof data != 'string') && !(data instanceof String)){
               log.debug("data type invalid");
-              resultArr.push(item.COLUMN_NAME + "[" + data + "]" + " is not varchar");
+              resultArr.push({field:item.COLUMN_NAME,value:data,errMsg:item.COLUMN_NAME + "[" + data + "]" + " is not varchar"});
             } else {
               if (data.length > item.COLUMN_SIZE) {
                 log.debug("data length invalid");
-                resultArr.push("length of" + item.COLUMN_NAME + "[" + data + "] must be less than " + item.COLUMN_SIZE);
+                resultArr.push({field:item.COLUMN_NAME,value:data,errMsg:"length of" + item.COLUMN_NAME + "[" + data + "] must be less than " + item.COLUMN_SIZE});
               }
             }
             break;
@@ -84,7 +180,7 @@ var checkValid = function(name,tbObj){
             log.debug("!moment(data, TIMESTAMP_FORMAT):" + (!moment(data, TIMESTAMP_FORMAT).isValid()));
             if (!moment(data, TIMESTAMP_FORMAT).isValid()){
               log.debug("date format invalid");
-              resultArr.push("format of " + item.COLUMN_NAME + "[" + data + "]" + " is invalid ");
+              resultArr.push({field:item.COLUMN_NAME,value:data,errMsg:"format of " + item.COLUMN_NAME + "[" + data + "]" + " is invalid "});
             };
             break;
           }
@@ -98,7 +194,40 @@ var checkValid = function(name,tbObj){
 
 /**
  * get definition of table by tablename
- */
+ *
+ * @param String name:name of table
+ * @return JSON object just like as display following
+   {  
+    "TABLE_CAT":null,
+    "TABLE_SCHEM":"ADMIN",
+    "TABLE_NAME":"DB2CRUDTEST",
+    "TABLE_TYPE":"TABLE",
+    "REMARKS":null,
+    "PK_FIELD":"ID",
+    "FIELD_DEFINITION":[  
+      {  
+        "TABLE_CAT":null,
+        "TABLE_SCHEM":"ADMIN",
+        "TABLE_NAME":"DB2CRUDTEST",
+        "COLUMN_NAME":"ID",
+        "DATA_TYPE":4,
+        "TYPE_NAME":"INTEGER",
+        "COLUMN_SIZE":10,
+        "BUFFER_LENGTH":4,
+        "DECIMAL_DIGITS":0,
+        "NUM_PREC_RADIX":10,
+        "NULLABLE":0,
+        "REMARKS":null,
+        "COLUMN_DEF":null,
+        "SQL_DATA_TYPE":4,
+        "SQL_DATETIME_SUB":null,
+        "CHAR_OCTET_LENGTH":null,
+        "ORDINAL_POSITION":1,
+        "IS_NULLABLE":"NO"
+      }
+    }
+ *
+ **/
 var getTbDefine = function(name){
   for (var i = 0; i < tbDefine.length; i++) {
     var item = tbDefine[i];
@@ -110,8 +239,33 @@ var getTbDefine = function(name){
 }
 
 /**
- * get field definition of table by tablename&fldname
- */
+ * get field definition of field by tablename&fldname
+ *
+ * @param String tbname:name of table
+ * @param String fldname:field name
+ * @return JSON object just like as display following
+      {  
+        "TABLE_CAT":null,
+        "TABLE_SCHEM":"ADMIN",
+        "TABLE_NAME":"DB2CRUDTEST",
+        "COLUMN_NAME":"ID",
+        "DATA_TYPE":4,
+        "TYPE_NAME":"INTEGER",
+        "COLUMN_SIZE":10,
+        "BUFFER_LENGTH":4,
+        "DECIMAL_DIGITS":0,
+        "NUM_PREC_RADIX":10,
+        "NULLABLE":0,
+        "REMARKS":null,
+        "COLUMN_DEF":null,
+        "SQL_DATA_TYPE":4,
+        "SQL_DATETIME_SUB":null,
+        "CHAR_OCTET_LENGTH":null,
+        "ORDINAL_POSITION":1,
+        "IS_NULLABLE":"NO"
+      }
+ *
+ **/
 var getFldDefine = function(tbname,fldname){
   var tb = getTbDefine(tbname);
   for (var i = 0; i < tb.FIELD_DEFINITION.length; i++) {
@@ -124,7 +278,22 @@ var getFldDefine = function(tbname,fldname){
 
 /**
  * execute sql and return result
- */
+ *
+ * @param String sql:sql need be executed
+ * @return promise object included all of records meet condition of sql
+    [  
+      {  
+        "ID":3,
+        "STR":"str3",
+        "DATEFIELD":"2017-09-03 05:25:00.518"
+      },
+      {  
+        "ID":4,
+        "STR":"str4"
+      }
+    ]
+ *   
+ **/
 function exeQuery(sql) {
   var deferred = Q.defer();
   log.debug("sql=" + sql);
@@ -141,15 +310,59 @@ function exeQuery(sql) {
 }
 
 /**
- * get value of sequence 
- * sequence name rule is : tablename + "_seq"
- */
+ * get next value of sequence
+ *
+ * @param String name:name of sequence want get
+ * @return promise object included next value of sequence, type of result is integer.
+ * 
+ **/
 var getSeq = function(name){
   var deferred = Q.defer();
   exeQuery('select NEXT VALUE FOR ' + name + '_seq value from sysibm.sysdummy1').then(data => deferred.resolve(data[0].VALUE));
   return deferred.promise;
 }
 
+/**
+ * insert one record or multiple records into some table
+ *
+ * @param String name:name of table
+ * @param String dataObj:JSON object included record need to be inserted
+ * attention: PK field need not be set, db2crud will automatically get next value of sequence as PK field 
+ * sequence name rule: [tablename] + "_SEQ" 
+    {  
+      "STR":"str3",
+      "DATEFIELD":"2017-09-03 05:25:00.518"
+    }
+    OR
+   [  
+      {  
+        "STR":"str3",
+        "DATEFIELD":"2017-09-03 05:25:00.518"
+      },
+      {  
+        "STR":"str4"
+      }
+    ]
+ * @return promise object included all of field values inserted into table.
+   {  
+      "ID" :1,
+      "STR":"str3",
+      "DATEFIELD":"2017-09-03 05:25:00.518"
+    }
+    OR
+   [  
+      {  
+        "ID" :1,      
+        "STR":"str3",
+        "DATEFIELD":"2017-09-03 05:25:00.518"
+      },
+      {  
+        "ID" :2,       
+        "STR":"str4"
+      }
+    ]
+ * 
+ **/
 var insert = function(name,dataObj){
   var deferred = Q.defer();
   var rArr = [];
@@ -181,8 +394,24 @@ var insert = function(name,dataObj){
 }
 
 /**
- * mapping fieldname with JSON field and insert into table named "name" parameter 
- */
+ * mapping fieldname with JSON field and insert into table named "name" parameter
+ *
+ * @param String name:name of table
+ * @param String dataObj:JSON object included record need to be inserted
+ * attention: PK field need not be set, db2crud will automatically get next value of sequence as PK field 
+ * sequence name rule: [tablename] + "_SEQ" 
+    {  
+      "STR":"str3",
+      "DATEFIELD":"2017-09-03 05:25:00.518"
+    }
+ * @return promise object included all of field values inserted into table.
+   {
+      "ID" : 1,
+      "STR":"str3",
+      "DATEFIELD":"2017-09-03 05:25:00.518"
+    }
+ * 
+ **/
 var _insert = function(name,dataObj){
   var deferred = Q.defer();
   getSeq(name).then(function(seq){
@@ -231,7 +460,34 @@ var _insert = function(name,dataObj){
 
 /**
  * get records that field equal with corresponding JSON field
- */
+ *
+ * @param String name:name of table
+ * @param String dataObj:JSON object included search criterion
+    {  
+      "STR":"str3",
+      "DATEFIELD":"2017-09-03 05:25:00.518"
+    }
+ * @return promise object included all of field values met criterion.
+   {
+      "ID" : 1,
+      "STR":"str3",
+      "DATEFIELD":"2017-09-03 05:25:00.518"
+    }
+    OR
+    [  
+      {  
+        "ID" :1,      
+        "STR":"str3",
+        "DATEFIELD":"2017-09-03 05:25:00.518"
+      },
+      {  
+        "ID" :2,       
+        "STR":"str4",
+        "DATEFIELD": null
+      }
+    ]
+ * 
+ **/
 var get = function(name,dataObj){
   var deferred = Q.defer();
   var tb = getTbDefine(name);
@@ -271,8 +527,18 @@ var get = function(name,dataObj){
 }
 
 /**
- * get record by PK
- */
+ * get records with PK id
+ *
+ * @param String name:name of table
+ * @param Integer id: value of pk field
+ * @return promise object included all of field values met criterion.
+   {
+      "ID" : 1,
+      "STR":"str3",
+      "DATEFIELD":"2017-09-03 05:25:00.518"
+    }
+ * 
+ **/
 var getById = function (name, id) {
   var tb = getTbDefine(name);
   var dataObj = {};
@@ -282,7 +548,12 @@ var getById = function (name, id) {
 
 /**
  * update records that field equal with corresponding JSON field
- */
+ *
+ * @param String name:name of table
+ * @param String dataObj:JSON object included update criterion
+ * @return promise object included Affected rows.
+ * 
+ **/
 var update = function(name,dataObj){
   var deferred = Q.defer();
   var resultArr = checkValid(name,dataObj);
@@ -327,7 +598,12 @@ var update = function(name,dataObj){
 
 /**
  * delete records that field equal with corresponding JSON field
- */
+ *
+ * @param String name:name of table
+ * @param String dataObj:JSON object included update criterion
+ * @return promise object included Affected rows.
+ * 
+ **/
 var remove = function(name,dataObj){
   var deferred = Q.defer();
   var tb = getTbDefine(name);
@@ -367,7 +643,12 @@ var remove = function(name,dataObj){
 
 /**
  * delete record by PK
- */
+ *
+ * @param String name:name of table
+ * @param Integer id:value of pk field
+ * @return promise object included Affected rows.
+ * 
+ **/
 var removeById = function (name, id) {
   var tb = getTbDefine(name);
   var dataObj = {};
@@ -377,11 +658,19 @@ var removeById = function (name, id) {
 
 /**
  * get tablelist of current schema and fields definition of these tables
- */
-
-var init = function(db){
-  log.setLogLevel('debug');
-  db2 = db;
+ *
+ * @param Connection option.db:connection that ibmdb.open returned 
+     ibmdb.open(common.connectionString, function(err,conn){});
+ * @param String option.dbname:databse name     
+ * @return promise included null value
+ * 
+ **/
+var init = function(options){
+  log.setLogLevel('info');
+  db2 = options.db;
+  if (options.dbname !=null && options.dbname !=undefined){
+    dbname = options.dbname;
+  }
   var deferred = Q.defer();
   db2.describe({
     database : dbname
@@ -411,7 +700,11 @@ var init = function(db){
 
 /**
  * get tablelist of current schema
- */
+ *
+ * @param String name:name of current schema    
+ * @return promise object included table list
+ * 
+ **/
 var getTbInfo = function(name){
   var deferred = Q.defer();
   db2.describe({
@@ -420,7 +713,7 @@ var getTbInfo = function(name){
   }, function (err, data) {
     if (err){
       deferred.reject(err);
-    }
+    };
     deferred.resolve(data);
   });
   return deferred.promise;
@@ -428,7 +721,10 @@ var getTbInfo = function(name){
 
 /**
  * set pk field for each item of table list
- */
+ *  
+ * @return promise object included pk field name list
+ * 
+ **/
 var setPK = function(){
   var deferred = Q.defer();
   var sql =  "SELECT tabschema, tabname, colname FROM syscat.columns WHERE keyseq IS NOT NULL AND keyseq > 0  ORDER BY tabschema, tabname, keyseq"; 
@@ -456,5 +752,6 @@ module.exports = {
     update: update,
     getTbDefine: getTbDefine,
     init: init,
-    setTimeFormat:setTimeFormat
+    setTimeFormat:setTimeFormat,
+    setDbname:setDbname
 };

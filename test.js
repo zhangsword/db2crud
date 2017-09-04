@@ -14,7 +14,7 @@ ibmdb.open(common.connectionString, function(err,conn){
 	console.log("drop table done!");
 	createTable();
 	console.log("create table done!");
-	test(db2);
+	test({db:db2,dbname:common.DATABASE});
 });
 
 function createTable() {
