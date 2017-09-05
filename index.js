@@ -757,7 +757,7 @@ var setPK = function(){
   });
   return deferred.promise;
 };
-var localLoadFlag = true;
+var localLoadFlag = false;
 function setTbInfo(filePath){
   var deferred = Q.defer();
   fs.readFile(filePath, 'utf8', function (err,data) {
