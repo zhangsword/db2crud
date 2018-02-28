@@ -59,7 +59,7 @@ tools of node.js for crud on db2
     
 Error Check
 
-		//retdata=    [  
+    //retdata=    [  
       {  
         "field":"DATEFIELD",
         "value":"abc",
