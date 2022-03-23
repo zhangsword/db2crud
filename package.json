@@ -16,5 +16,9 @@
   "repository": {},
   "engines": {
     "node": "4.x"
-  }
+  },
+  "licenses": [{
+    "type": "MIT",
+    "url": "https://github.com/zhangsword/db2crud/raw/master/LICENSE"
+  }]
 }
